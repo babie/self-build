@@ -1,31 +1,20 @@
 name: babie/self-build
 description: build htmls from markdowns
 
-inputs:
-  github_token:
-    description: 'github access token for your repos'
-    required: true
-
 runs:
   using: composite
   steps:
-    - name: Checkout self-web repository
+    - name: Checkout self-web
       uses: actions/checkout@v3
       with:
         repository: 'babie/self-web'
         path: ./self-web
         ref: v0
-    - name: Checkout your self documents repository
-      uses: actions/checkout@v3
-      with:
-        repository: ${{ github.repository }}
-        token: ${{ inputs.github_token }}
-        path: ./self
-    - name: Copy
+    - name: Copy docs and config
       run: |
-        cp -r self/docs/* self-web/src/content/
-        cp -f self/self.config.json self-web/
-        jq '.site | if endswith(".github.io") then "" else . end' self/self.config.json -r | read site; if [ -z $site ]; then echo "noop"; else echo $site > self-web/public/CNAME; fi
+        cp -r ./docs/* self-web/src/content/
+        cp -f ./self.config.json self-web/
+        jq '.site | if endswith(".github.io") then "" else . end' ./self.config.json -r | read site; if [ -z $site ]; then echo "noop"; else echo $site > self-web/public/CNAME; fi
       shell: bash
     - name: Install, Build and Upload
       uses: withastro/action@v0
@@ -33,3 +22,6 @@ runs:
           path: ./self-web
           node-version: 16
           package-manager: pnpm
+    - name: Deploy
+      id: deployment
+      uses: actions/deploy-pages@v1
