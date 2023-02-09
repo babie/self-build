@@ -1,0 +1,35 @@
+name: babie/self-publish
+description: publish markdown docs to github pages
+
+inputs:
+  github_token:
+    description: 'github personal access token for your repos'
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout self-generate repository
+      uses: actions/checkout@v3
+      with:
+        repository: 'babie/self-generate'
+        path: ./self-generate
+        ref: v0
+    - name: Checkout your self documents repository
+      uses: actions/checkout@v3
+      with:
+        repository: ${{ github.repository }}
+        token: ${{ inputs.github_token }}
+        path: ./self
+    - name: Copy
+      run: |
+        cp -r self/docs/* self-generate/src/content/
+        cp -f self/self.config.json self-generate/
+        jq '.site | if endswith(".github.io") then "" else . end' self/self.config.json -r | read site; if [ -z $site ]; then echo "noop"; else echo $site > self-generate/public/CNAME; fi
+      shell: bash
+    - name: Install, Build and Upload
+      uses: withastro/action@v0
+      with:
+          path: ./self-generate
+          node-version: 16
+          package-manager: pnpm
