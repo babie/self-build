@@ -1,5 +1,5 @@
-name: babie/self-build
-description: build htmls from markdowns
+name: babie/self-publish
+description: convert markdown to html and publish github pages
 
 runs:
   using: composite
